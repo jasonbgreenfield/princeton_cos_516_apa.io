@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Algebraic Program Analysis</title>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        #graph { border: 1px solid #ccc; margin-top: 20px; }
+        .delete-btn { margin-left: 10px; color: red; cursor: pointer; }
+        text { pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<h1>Algebraic Program Analysis Learning Tool</h1>
+<h2>Introduction</h2>
+
+<p>
+    This site presents an interactive learning tool to help students learn the basic concepts of Algebraic Program
+    Analysis.
+    Start by creating an integer-weighted graph. Then, the tool will automatically generate the path expression
+</p>
+
+<p>
+    Begin by adding edges to define an integer-weighted graph. The tool will automatically visualize this graph and
+    let you update and edit the edges as you like. Loops, self-loops, and negative weights are allowed. Only one edge
+    between
+    nodes is permitted.
+</p>
+
+<p>
+    After defining your graph, the tool will automatically compute the path prefix representing all possible paths
+    between user-defined source and destination nodes. Begin by defining the "Source" and "Destination" nodes
+    (must be valid nodes in the user-defined graph) and then click "Get Path Prefix".
+</p>
+
+
+<h2>Add Edge</h2>
+<p>
+    Enter edges in the format: <b>A -> B = 3</b><br>
+    Supports loops (A → A, A→B and B→A) and multiple inputs at a time (A->B=3, B->C=4).
+</p>
+
+<p>Note, the graph from lecture notes 16 can be initialized with the following:</p>
+<p>a->b=1,b->c=2,b->d=-1,d->c=1,d->a=0,d->e=-1,e->d=2</p>
+
+<input id="edge-input" type="text" placeholder="A -> B = 3   or   A->B=3,B->C=4" size="40">
+<button onclick="addEdgesFromInput()">Add Edge</button>
+
+<h3>Edge List:</h3>
+<p>You can remove any edge from the graph by selecting [delete] next to the edge in the list below.</p>
+<div id="edge-list"></div>
+
+<h2>Graph Visualizer</h2>
+<svg id="graph" width="700" height="500"></svg>
+
+
+<h2>Get Path Prefix</h2>
+<p>Naive implementation of Kleene's algorithm.</p>
+<label>Source: </label>
+<input id="range-source" type="text" size="8" placeholder="A">
+<label>Destination: </label>
+<input id="range-dest" type="text" size="8" placeholder="F">
+<button onclick="getPathPrefix()">Get Path Prefix</button>
+<div id="sorted-nodes-output" style="margin-top:10px; font-weight:bold;"></div>
+
+<h2>DAG Representation for Path Prefix</h2>
+<p>TODO</p>
+
+<h2>DAG Interpretation for Shortest Path Distance</h2>
+<p>TODO</p>
+
+<h2>Further Resources</h2>
+<a href="https://ucl-pplv.github.io/CAV21/poster_P_k2/">
+    Kincaid, Z., Reps, T., and Cyphert, J. (2021). Algebraic program analysis.
+    In Silva, A. and Leino, K. R. M., editors, Computer Aided Verification, pages 46–83, Cham.
+    Springer International Publishing.
+</a>
+
+<script>
+    // init list for graph edges
+    let edges = [];
+
+    // let user input edges with enter key
+    document.getElementById("edge-input").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") addEdgesFromInput();
+    });
+
+    // parse each edge formatted as string like: a -> b = 0
+    function parseEdge(text) {
+        const parts = text.split(/->|=/);
+        if (parts.length !== 3) return null;
+
+        const sourceName = parts[0].trim();
+        const targetName = parts[1].trim();
+        const weight = parseInt(parts[2].trim());
+
+        if (!sourceName || !targetName || isNaN(weight)) return null;
+        return { sourceName, targetName, weight };
+    }
+
+    // add edges from user input
+    // calls addSingleEdge() for each edge in the input
+    function addEdgesFromInput() {
+        const inputText = document.getElementById("edge-input").value.trim();
+        if (inputText.length === 0) return;
+
+        // split on commas, lets user input multiple edges at once
+        const parts = inputText.split(",");
+
+        parts.forEach(p => {
+            const trimmed = p.trim();
+            if (trimmed.length > 0) addSingleEdge(trimmed);
+        });
+
+        document.getElementById("edge-input").value = "";
+        renderEdgeList();
+        drawGraph();
+    }
+
+
+    // add a single edge
+    function addSingleEdge(input) {
+        const edge = parseEdge(input);
+
+        if (!edge) {
+            alert(`Invalid edge format: "${input}". Use A -> B = 3`);
+            return;
+        }
+
+        // check if edge already exists
+        const existingIndex = edges.findIndex(e =>
+            e.sourceName === edge.sourceName &&
+            e.targetName === edge.targetName
+        );
+
+        if (existingIndex !== -1) {
+            // update weight for existing edge
+            edges[existingIndex].weight = edge.weight;
+        } else {
+            edges.push(edge);
+        }
+    }
+
+    // let user delete edges by clicking delete button
+    function deleteEdge(i) {
+        edges.splice(i, 1);
+        renderEdgeList();
+        drawGraph();
+    }
+
+    // actually render the edges
+    function renderEdgeList() {
+        const div = document.getElementById("edge-list");
+        div.innerHTML = "";
+        edges.forEach((e, i) => {
+            const row = document.createElement("div");
+            row.textContent = `${e.sourceName} -> ${e.targetName} = ${e.weight}`;
+
+            const del = document.createElement("span");
+            del.textContent = " [delete]";
+            del.className = "delete-btn";
+            del.onclick = () => deleteEdge(i);
+
+            row.appendChild(del);
+            div.appendChild(row);
+        });
+    }
+
+    // visualize the graph with d3
+    function drawGraph() {
+        const svg = d3.select("#graph");
+        svg.selectAll("*").remove();
+
+        const nodes = Array.from(
+            new Set(edges.flatMap(e => [e.sourceName, e.targetName]))
+        ).map(id => ({ id }));
+
+        const simEdges = edges.map(e => ({
+            source: e.sourceName,
+            target: e.targetName,
+            weight: e.weight
+        }));
+
+        svg.append("defs").append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 20)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#555");
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(simEdges).id(d => d.id).distance(140))
+            .force("charge", d3.forceManyBody().strength(-400))
+            .force("center", d3.forceCenter(350, 250));
+
+        const link = svg.append("g")
+            .selectAll("path")
+            .data(simEdges)
+            .enter().append("path")
+            .attr("stroke", "#888")
+            .attr("stroke-width", 2)
+            .attr("fill", "none")
+            .attr("marker-end", "url(#arrow)");
+
+        const weightLabels = svg.append("g")
+            .selectAll("text")
+            .data(simEdges)
+            .enter().append("text")
+            .attr("font-size", 13)
+            .attr("fill", "black")
+            .text(d => d.weight);
+
+        const node = svg.append("g")
+            .selectAll("circle")
+            .data(nodes)
+            .enter().append("circle")
+            .attr("r", 18)
+            .attr("fill", "#F08822")
+            .call(drag(simulation));
+
+        const nodeLabels = svg.append("g")
+            .selectAll("text")
+            .data(nodes)
+            .enter().append("text")
+            .text(d => d.id)
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em");
+
+
+        // add curve offset for two edges between same nodes for visual purposes
+        function edgeOffset(d) {
+            const opp = simEdges.some(e =>
+                e.source.id === d.target.id && e.target.id === d.source.id
+            );
+            return opp ? 40 : 0;
+        }
+
+
+    function edgePath(d) {
+        if (d.source.id === d.target.id) {
+            const x = d.source.x;
+            const y = d.source.y;
+            const r = 45;
+            return `
+                M ${x} ${y}
+                C ${x - r} ${y - r*2},
+                  ${x + r} ${y - r*2},
+                  ${x} ${y}
+            `;
+        }
+
+        const offset = edgeOffset(d);
+        if (offset === 0) {
+            return `M ${d.source.x},${d.source.y} L ${d.target.x},${d.target.y}`;
+        }
+
+        const dx = d.target.x - d.source.x;
+        const dy = d.target.y - d.source.y;
+        const mx = (d.source.x + d.target.x) / 2;
+        const my = (d.source.y + d.target.y) / 2;
+
+        const nx = -dy, ny = dx;
+        const len = Math.hypot(nx, ny);
+        const ux = nx / len, uy = ny / len;
+
+        const cx = mx + ux * offset;
+        const cy = my + uy * offset;
+
+        return `M ${d.source.x},${d.source.y} Q ${cx},${cy} ${d.target.x},${d.target.y}`;
+    }
+
+    function computeCurveLabelPosition(d) {
+        const sx = d.source.x;
+        const sy = d.source.y;
+
+        // Self-loop labeling
+        if (d.source.id === d.target.id) {
+            const r = 45;
+
+            // Place label centered above loop
+            return {
+                x: sx,
+                y: sy - r * 2 - 5
+            };
+        }
+
+        // Normal & curved edges:
+        const tx = d.target.x;
+        const ty = d.target.y;
+        const offset = edgeOffset(d);
+
+        const mx = (sx + tx) / 2;
+        const my = (sy + ty) / 2;
+
+        if (offset === 0) {
+            return { x: mx, y: my };
+        }
+
+        const dx = tx - sx;
+        const dy = ty - sy;
+        const nx = -dy, ny = dx;
+        const len = Math.hypot(nx, ny);
+        const ux = nx / len, uy = ny / len;
+
+        const labelOffset = offset * 0.6;
+
+        return {
+            x: mx + ux * labelOffset,
+            y: my + uy * labelOffset
+        };
+    }
+
+        simulation.on("tick", () => {
+            link.attr("d", edgePath);
+
+            weightLabels
+                .attr("x", d => computeCurveLabelPosition(d).x)
+                .attr("y", d => computeCurveLabelPosition(d).y);
+
+            node.attr("cx", d => d.x).attr("cy", d => d.y);
+            nodeLabels.attr("x", d => d.x).attr("y", d => d.y);
+        });
+    }
+
+
+
+    // let user drag nodes to rearrange them
+    function drag(simulation) {
+        return d3.drag()
+            .on("start", (event, d) => {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x; d.fy = d.y;
+            })
+            .on("drag", (event, d) => {
+                d.fx = event.x; d.fy = event.y;
+            })
+            .on("end", (event, d) => {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null; d.fy = null;
+            });
+    }
+
+    // kleene's algorithm
+    function kleeneUnion(u, v) {
+        if (u === '∅') return v;
+        if (v === '∅') return u;
+        if (u === v) return u;
+        return `(${u} + ${v})`;
+    }
+
+    function kleeneConcatenation(u, v) {
+        if (u === '∅' || v === '∅') return '∅';
+        if (u === '{ϵ}') return v;
+        if (v === '{ϵ}') return u;
+        return `(${u})(${v})`;
+    }
+
+    function kleeneClosure(u) {
+        if (u === '{ϵ}' || u === '∅') return '{ϵ}';
+        return `(${u})*`;
+    }
+
+    // ========================================================
+    // Main Kleene's path expressions function
+    // ========================================================
+    function kleenePathExpressions(nodes, edges, start) {
+        // make sure start is in our list of nodes
+        if (!nodes.includes(start)) {
+            alert(`Invalid start node ${start}! Must be in ${nodes}`);
+            return null;
+        }
+
+        // make sure neither of our helper values are in the list of node names
+        if (nodes.includes('∅') || nodes.includes('{ϵ}')) {
+            alert('Node names ∅ and {ϵ} are not allowed.');
+            return null;
+        }
+
+        // make sure start node is 0th index
+        nodes.sort();
+        nodes = nodes.filter(n => n !== start);
+        nodes.unshift(start);
+
+        // init mapping from node name to num
+        const nodeIndex = {};
+        nodes.forEach((v, i) => nodeIndex[v] = i);
+        const n = nodes.length;
+
+        // init matrix keeping track of all path expressions between nodes
+        // starting vals are all the empty set represented as ∅
+        // this is equivalent to: 0L ≜ ∅ is the empty language
+        const pe = Array.from({ length: n }, () => Array(n).fill('∅'));
+
+        // vals along the diagonal represent paths from a node to itself
+        // these are represented with {ϵ}, the singleton language containing the empty word
+        // this is equivalent to: 1L ≜ {ϵ} is the singleton language containing the empty word
+        for (let i = 0; i < n; i++) pe[i][i] = '{ϵ}';
+
+        // init direct edges
+        edges.forEach(edge => {
+            const u = nodeIndex[edge.sourceName];
+            const v = nodeIndex[edge.targetName];
+            pe[u][v] = `<${edge.sourceName},${edge.targetName}>`;
+        });
+
+        // kleene's path expression algo
+        for (let i = n - 1; i >= 0; i--) {
+            for (let j = i; j >= 0; j--) {
+                for (let k = n - 1; k >= 0; k--) {
+                    const vj_vk = pe[j][k];
+                    const vj_vi = pe[j][i];
+                    const vi_vi = pe[i][i];
+                    const vi_vk = pe[i][k];
+
+                    const star_ii = kleeneClosure(vi_vi);
+                    const concat_ji_iistar = kleeneConcatenation(vj_vi, star_ii);
+                    const concat_jiiistar_ik = kleeneConcatenation(concat_ji_iistar, vi_vk);
+                    pe[j][k] = kleeneUnion(vj_vk, concat_jiiistar_ik);
+                }
+            }
+        }
+
+        const startIndex = nodeIndex[start];
+        const startToPE = {};
+        nodes.forEach(node => startToPE[node] = pe[startIndex][nodeIndex[node]]);
+        return startToPE;
+    }
+
+    // runner function for kleene's algorithm
+    function getPathPrefix() {
+        const src = document.getElementById("range-source").value.trim();
+        const dst = document.getElementById("range-dest").value.trim();
+
+        if (!src || !dst) {
+            alert("Please enter both Source and Destination nodes.");
+            return;
+        }
+
+        // get nodes from user-defined input graph
+        const allNodes = Array.from(new Set(edges.flatMap(e => [e.sourceName, e.targetName]))).sort();
+
+        if (!allNodes.includes(src) || !allNodes.includes(dst)) {
+            alert("Both Source and Destination must be nodes in the graph.");
+            return;
+        }
+
+        // run kleene's algo
+        const pe = kleenePathExpressions(allNodes, edges, src);
+        if (!pe) return;
+
+        // print path expression from source -> dest
+        const result = pe[dst];
+        document.getElementById("sorted-nodes-output").textContent =
+            `Path expression from ${src} → ${dst}: ${result}`;
+    }
+
+
+</script>
+</body>
+</html>
