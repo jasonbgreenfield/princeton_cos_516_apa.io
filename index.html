@@ -7,6 +7,25 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <style>
+        body { font-family: Arial; margin: 0; padding: 0; }
+
+        .top-header {
+            background-color: #F08822;
+            color: black;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .bottom-footer {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+        }
         body { font-family: Arial; margin: 20px; }
         #graph { border: 1px solid #ccc; margin-top: 20px; }
         .delete-btn { margin-left: 10px; color: red; cursor: pointer; }
@@ -15,20 +34,53 @@
 </head>
 <body>
 
-<h1>Algebraic Program Analysis Learning Tool</h1>
-<h2>Introduction</h2>
+<header class="top-header">
+    Algebraic Program Analysis Learning Tool
+</header>
+
 
 <p>
     This site presents an interactive learning tool to help students learn the basic concepts of Algebraic Program
-    Analysis.
-    Start by creating an integer-weighted graph. Then, the tool will automatically generate the path expression
+    Analysis. It first introduces the concept of Algebraic Program Analysis and then allows users to learn by doing
+    through an interactive example of Algebraic Path Finding.
+</p>
+
+<h2>Introduction to Algebraic Program Analysis</h2>
+
+<p>
+    Algebraic program analysis is a general, compositional approach to reasoning about programs using ideas
+    originally developed for solving path problems in graphs.
+    In program analysis, algebraic techniques treat a program’s control-flow graph as a space of composable summaries,
+    computing the program’s overall behavior bottom-up by combining summaries of increasingly larger subprograms.
 </p>
 
 <p>
+    <i>Why use it?</i> Because it is compositional: the meaning of a whole program is built from the meanings of its
+    parts. This enables scalability, parallelism, incremental analysis, and even reasoning about incomplete programs.
+</p>
+
+<p>
+    <i>Why not use it?</i> Compositionality can lose context: the analysis of a component cannot depend on its
+    surroundings, which is problematic in settings like iterative abstract interpreters or refinement-based
+    software model checkers.
+</p>
+
+
+<h2>Interactive Example: Algebraic Path Finding</h2>
+
+<p>
+    The origin of Algebraic Program Analysis is the path-finding problem. In this interactive example, you can walk
+    through the steps to set up and then solve this problem. Begin by defining a graph, then the tool will automatically
+    identify the path expressions representing all possible paths between any two source and destination nodes.
+    This particular implementation uses <a>Kleene's algorithm</a>, though you could similarly accomplish this with
+    <a>Tarjan's</a> algorithm or your own approach!
+</p>
+
+<p>
+    Start by creating an integer-weighted graph. Then, the tool will automatically generate the path expression
     Begin by adding edges to define an integer-weighted graph. The tool will automatically visualize this graph and
     let you update and edit the edges as you like. Loops, self-loops, and negative weights are allowed. Only one edge
-    between
-    nodes is permitted.
+    between nodes is permitted.
 </p>
 
 <p>
@@ -38,7 +90,7 @@
 </p>
 
 
-<h2>Add Edge</h2>
+<h3>1. Add Edge</h3>
 <p>
     Enter edges in the format: <b>A -> B = 3</b><br>
     Supports loops (A → A, A→B and B→A) and multiple inputs at a time (A->B=3, B->C=4).
@@ -54,11 +106,11 @@
 <p>You can remove any edge from the graph by selecting [delete] next to the edge in the list below.</p>
 <div id="edge-list"></div>
 
-<h2>Graph Visualizer</h2>
+<h3>Graph Visualizer</h3>
 <svg id="graph" width="700" height="500"></svg>
 
 
-<h2>Get Path Prefix</h2>
+<h3>2. Get Path Prefix</h3>
 <p>Naive implementation of Kleene's algorithm.</p>
 <label>Source: </label>
 <input id="range-source" type="text" size="8" placeholder="A">
@@ -67,18 +119,31 @@
 <button onclick="getPathPrefix()">Get Path Prefix</button>
 <div id="sorted-nodes-output" style="margin-top:10px; font-weight:bold;"></div>
 
-<h2>DAG Representation for Path Prefix</h2>
+<h3>DAG Representation for Path Prefix</h3>
 <p>TODO</p>
 
-<h2>DAG Interpretation for Shortest Path Distance</h2>
+<h3>3. Interpret DAG for Shortest Path Distance</h3>
 <p>TODO</p>
 
-<h2>Further Resources</h2>
+<h2>Additional Resources</h2>
 <a href="https://ucl-pplv.github.io/CAV21/poster_P_k2/">
     Kincaid, Z., Reps, T., and Cyphert, J. (2021). Algebraic program analysis.
     In Silva, A. and Leino, K. R. M., editors, Computer Aided Verification, pages 46–83, Cham.
     Springer International Publishing.
 </a>
+<p>
+    Kleene, S. (1956). Representation of events in nerve nets and finite automata.
+    In Shannon, C. and McCarthy, J., editors, Automata Studies, pages 3—40. Princeton
+    University Press, Princeton, N.J.
+</p>
+<p>
+    Tarjan, R. E. (1981a). Fast algorithms for solving path problems. J. ACM, 28(3):594–614.
+</p>
+
+<footer class="bottom-footer">
+    Class Project for COS 516, Princeton Fall 2025, Jason Greenfield.
+    Based on Lecture Notes by Professor Zachary Kincaid.
+</footer>
 
 <script>
     // init list for graph edges
