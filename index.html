@@ -5,6 +5,13 @@
     <title>Algebraic Program Analysis</title>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/dagre/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js"></script>
+    <script>
+        cytoscape.use(cytoscapeDagre);
+    </script>
+
 
     <style>
         body { font-family: Arial; margin: 0; padding: 0; }
@@ -38,66 +45,77 @@
     Algebraic Program Analysis Learning Tool
 </header>
 
-
 <p>
-    This site presents an interactive learning tool to help students learn the basic concepts of Algebraic Program
-    Analysis. It first introduces the concept of Algebraic Program Analysis and then allows users to learn by doing
-    through an interactive example of Algebraic Path Finding.
+    This website offers an interactive, practice-oriented environment designed to guide students through the core ideas
+    of <b>Algebraic Program Analysis</b>. The material begins with a structured introduction to the theoretical
+    foundations and then transitions into a hands-on exploration of <b>Algebraic Path Finding</b>,
+    enabling learners to experiment directly with concepts that traditionally appear only in formal proofs or lecture
+    notes.
 </p>
 
-<h2>Introduction to Algebraic Program Analysis</h2>
+<h1>Introduction to Algebraic Program Analysis</h1>
 
 <p>
-    Algebraic program analysis is a general, compositional approach to reasoning about programs using ideas
-    originally developed for solving path problems in graphs.
-    In program analysis, algebraic techniques treat a program’s control-flow graph as a space of composable summaries,
-    computing the program’s overall behavior bottom-up by combining summaries of increasingly larger subprograms.
-</p>
-
-<p>
-    <i>Why use it?</i> Because it is compositional: the meaning of a whole program is built from the meanings of its
-    parts. This enables scalability, parallelism, incremental analysis, and even reasoning about incomplete programs.
+    <b>Algebraic Program Analysis</b> is a general and compositional framework for reasoning about program behavior.
+    The methodology originates from techniques used for solving path problems in graphs, and it extends these ideas to
+    interpret a program’s control-flow graph in algebraic terms. Each program component is viewed as a <i>summary</i>
+    that can be algebraically combined with others. By composing progressively larger summaries, we recover a complete
+    description of the program’s behavior.
 </p>
 
 <p>
-    <i>Why not use it?</i> Compositionality can lose context: the analysis of a component cannot depend on its
-    surroundings, which is problematic in settings like iterative abstract interpreters or refinement-based
-    software model checkers.
-</p>
-
-
-<h2>Interactive Example: Algebraic Path Finding</h2>
-
-<p>
-    The origin of Algebraic Program Analysis is the path-finding problem. In this interactive example, you can walk
-    through the steps to set up and then solve this problem. Begin by defining a graph, then the tool will automatically
-    identify the path expressions representing all possible paths between any two source and destination nodes.
-    This particular implementation uses <a>Kleene's algorithm</a>, though you could similarly accomplish this with
-    <a>Tarjan's</a> algorithm or your own approach!
+    <i>Why use algebraic program analysis?</i>
+    Its compositional nature allows the semantics of a large or complex program to be derived systematically from
+    the semantics of smaller subcomponents. This makes the technique especially effective for scalable analysis,
+    parallel computation, incremental re-analysis after small changes, and reasoning about partially known or incomplete
+    programs. Because the approach is algebraic, it supports uniform reasoning across many different applications.
 </p>
 
 <p>
-    Start by creating an integer-weighted graph. Then, the tool will automatically generate the path expression
-    Begin by adding edges to define an integer-weighted graph. The tool will automatically visualize this graph and
-    let you update and edit the edges as you like. Loops, self-loops, and negative weights are allowed. Only one edge
-    between nodes is permitted.
+    <i>Why not use it?</i> Compositional analysis can sometimes lose context; the analysis of a component cannot
+    depend on its surrounding program structure. This limitation can be challenging in scenarios such as iterative
+    abstract interpreters or refinement-based software model checkers.
+</p>
+
+<h1>Interactive Example: Algebraic Path Finding</h1>
+
+<p>
+    Algebraic Program Analysis has its origins in graph path-finding problems. This interactive example allows you to
+    explore the process of defining and solving such problems. Begin by constructing a graph; the tool will
+    automatically compute path expressions representing all possible paths between specified source and destination
+    nodes. This implementation utilizes Kleene's algorithm, though similar results can be achieved using Tarjan's
+    algorithm or other approaches.
 </p>
 
 <p>
-    After defining your graph, the tool will automatically compute the path prefix representing all possible paths
-    between user-defined source and destination nodes. Begin by defining the "Source" and "Destination" nodes
-    (must be valid nodes in the user-defined graph) and then click "Get Path Prefix".
+    To begin, create an integer-weighted directed graph. The tool visualizes the graph immediately and supports
+    dynamic editing of edges. Loops, self-loops, and negative edge weights are all permitted. The only restriction is
+    that at most one edge may exist between any ordered pair of nodes.
 </p>
 
-
-<h3>1. Add Edge</h3>
 <p>
-    Enter edges in the format: <b>A -> B = 3</b><br>
-    Supports loops (A → A, A→B and B→A) and multiple inputs at a time (A->B=3, B->C=4).
+    Once your graph is defined, you can begin generating <b>path prefixes</b>: algebraic expressions representing all
+    possible paths from a specified source node to a specified destination node. This tool demonstrates various
+    implementations for the algorithm to generate these path prefixes. Below, you can test each implementation and
+    compare the path prefixes generated by each. All three algorithms include links to the source code in both
+    JavaScript and Python so you can understand and run the code yourself!
 </p>
 
-<p>Note, the graph from lecture notes 16 can be initialized with the following:</p>
-<p>a->b=1,b->c=2,b->d=-1,d->c=1,d->a=0,d->e=-1,e->d=2</p>
+
+<h2>1. Add Edges to Create a Graph</h2>
+<p>
+    Enter edges using the format: <b>A → B = 3</b><br>
+    The tool supports loops (e.g., A → A), bidirectional pairs (A → B and B → A), and multiple edges entered at
+    once (e.g., <b>A->B=3, B->C=4</b>).
+</p>
+
+<p>
+    <i>Hint: try entering the following graph to get started!</i>
+</p>
+<p>
+    <i>a->b=1,b->c=2,b->d=-1,d->c=1,d->a=0,d->e=-1,e->d=2</i>
+</p>
+
 
 <input id="edge-input" type="text" placeholder="A -> B = 3   or   A->B=3,B->C=4" size="40">
 <button onclick="addEdgesFromInput()">Add Edge</button>
@@ -109,23 +127,193 @@
 <h3>Graph Visualizer</h3>
 <svg id="graph" width="700" height="500"></svg>
 
+<h2>2. Generate Path Prefixes</h2>
+<p>
+    Kleene’s algorithm for computing path expressions can be implemented in many different ways. Some versions
+    prioritize clarity, while others focus on efficiency. In this section, you can experiment with three different
+    implementations and compare the expressions they produce.
+</p>
 
-<h3>2. Get Path Prefix</h3>
-<p>Naive implementation of Kleene's algorithm.</p>
+<ol>
+    <li>Naive implementation using string representations for path expressions and minimal simplifications</li>
+    <li>Efficient implementation using a DAG representation for path expressions and additional simplifications</li>
+    <li>DAG representation including one additional simplification rule</li>
+</ol>
+
+<p>
+    All three variants follow the same conceptual structure and implement the same algorithmic skeleton.
+    The pseudocode below outlines the essential form of <b>Kleene’s Path Expression Algorithm</b>.
+</p>
+
+<pre class="pseudocode"><code>
+<b>Algorithm 1: Kleene’s Path Expression Algorithm</b>
+
+<b>Subroutine</b> <i>kleene</i>(G, r)
+<b>Input:</b>  Directed graph G = &langle;V, E&rangle;, vertex r &in; V
+<b>Output:</b> Function mapping each vertex v to a path expression recognizing the paths from r to v
+
+/&#42; pe(u, v) recognizes paths from u to v &#42;/
+Initialize pe(u, v) as:
+    &langle;u, v&rangle; if (u, v) &in; E
+    &empty; otherwise
+
+/&#42; Suppose V is ordered as V = { r = v<sub>0</sub>, v<sub>1</sub>, ..., v<sub>n</sub> } &#42;/
+
+/&#42; Invariant:For j &le; i, and any k, pe(v<sub>j</sub>, v<sub>k</sub>) recognizes all paths from v<sub>j</sub> to v<sub>k</sub>
+      that do not go through any vertex &gt; i &#42;/
+
+<b>for</b> i = n <b>downto</b> 0 <b>do</b>
+    <b>for</b> j = i <b>downto</b> 0 <b>do</b>
+        <b>for</b> k = n <b>downto</b> 0 <b>do</b>
+            pe(v<sub>j</sub>, v<sub>k</sub>) ← pe(v<sub>j</sub>, v<sub>k</sub>) + pe(v<sub>j</sub>, v<sub>i</sub>) · (pe(v<sub>i</sub>, v<sub>i</sub>))<sup>*</sup> · pe(v<sub>i</sub>, v<sub>k</sub>)
+        <b>end for</b>
+    <b>end for</b>
+<b>end for</b>
+
+<b>return</b> (v ↦ pe(r, v))
+
+<b>end Subroutine</b>
+</code></pre>
+
+<p>
+    Before the algorithm begins its iterative updates, it initializes an <i>n × n</i> matrix, where <i>n</i> is the
+    number of nodes in the graph. Every cell is initially set to the empty expression, except the diagonal entries,
+    which are assigned epsilon to represent zero-length paths for self-edges. Each matrix entry corresponding to an
+    edge in the graph is populated with that edge’s label.
+</p>
+
+<p>
+    After initialization, the algorithm proceeds through three nested loops. At each step, previously computed
+    expressions are combined using <b>concatenation</b>, <b>union</b>, and <b>Kleene closure</b>. While all three
+    implementations presented here follow the same structure, they differ in how path expressions are represented and
+    simplified internally.
+</p>
+
+<p>
+    The sections below contain working implementations of all three versions. Experiment with each one to see how
+    representation choices affect the final path expressions. Source code for JavaScript and Python versions of each
+    implementation is also available.
+</p>
+
+
+<h4>2.1 Naive String Representation</h4>
+
+<p>
+    This implementation represents every path expression directly as a string. It performs only very limited
+    simplification when applying the Kleene operations. Because expressions are repeatedly expanded, the resulting
+    path expressions can grow exponentially with the number of nodes in the graph. The string-based representation is
+    therefore both space-intensive and often difficult to interpret. Enter a source and destination node to observe
+    the resulting expression for yourself!
+</p>
+
 <label>Source: </label>
-<input id="range-source" type="text" size="8" placeholder="A">
+<input id="range-source-naive" type="text" size="8" placeholder="A">
 <label>Destination: </label>
-<input id="range-dest" type="text" size="8" placeholder="F">
-<button onclick="getPathPrefix()">Get Path Prefix</button>
-<div id="sorted-nodes-output" style="margin-top:10px; font-weight:bold;"></div>
+<input id="range-dest-naive" type="text" size="8" placeholder="B">
+<button onclick="getPathPrefixNaive()">Get Path Prefix</button>
+<div id="pe-output-naive" style="margin-top:10px; font-weight:bold;"></div>
+<p>View my source code!
+    <a href="TODO">JavaScript</a> |
+    <a href="TODO">Python</a>
+</p>
 
-<h3>DAG Representation for Path Prefix</h3>
-<p>TODO</p>
 
-<h3>3. Interpret DAG for Shortest Path Distance</h3>
-<p>TODO</p>
+<h4>2.2 Efficient DAG Representation</h4>
 
-<h2>Additional Resources</h2>
+<p>
+    This implementation improves efficiency by storing path expressions in a <b>Directed Acyclic Graph (DAG)</b>.
+    Common subexpressions are represented once and shared, significantly reducing memory consumption. Additional
+    simplification rules help keep the resulting expressions concise and easier to understand. Compare the output here
+    with the naive version above to see how structural sharing and simplification reduce the final path expression.
+</p>
+
+<label>Source: </label>
+<input id="range-source-dag" type="text" size="8" placeholder="A">
+<label>Destination: </label>
+<input id="range-dest-dag" type="text" size="8" placeholder="B">
+<button onclick="getPathPrefixDAG()">Get Path Prefix</button>
+<div id="pe-output-dag" style="margin-top:10px; font-weight:bold;"></div>
+<p>View my source code!
+    <a href="TODO">JavaScript</a> |
+    <a href="TODO">Python</a>
+</p>
+
+<h4>2.3 Implementing an Additional Simplification Rule</h4>
+
+<p>
+    Numerous algebraic simplification rules can be applied to path expressions. This final variant extends the DAG-based
+    implementation above by adding one such rule. In particular, it uses the identity:
+</p>
+
+<p>
+    ({ϵ} + p)* = (p + {ϵ})* = p*
+</p>
+
+<p>
+    In this tool, the rule is applied as a <b>post-processing step</b> after the full expression has been computed.
+    Although the rule could be integrated directly into the closure operator, doing so would require more complex,
+    less readable recursive logic. Presenting it as a standalone post-processing step makes its effect clearer.
+    In the source code, this looks like adding one additional post-processing function to perform this simplification
+    on the resulting path expression derived above. Compare the output here with the version above to observe the
+    simplification in action!
+</p>
+
+<p>
+    <i>Challenge: What other simplification rules could you implement and how would you add them to the source code?</i>
+</p>
+
+<button onclick="getPathPrefixDAGSimplified()">Get Simplified Path Prefix</button>
+<div id="pe-output-dag-simplified" style="margin-top:10px; font-weight:bold;"></div>
+<p>View my source code!
+    <a href="TODO">JavaScript</a> |
+    <a href="TODO">Python</a>
+</p>
+
+<h2>3. Interpret DAG for Shortest Path Distance</h2>
+
+<p>
+    The <b>distance interpretation</b> evaluates a path expression DAG not as a symbolic expression,
+    but as a numerical computation that yields the length of the shortest path between two nodes.
+    This corresponds to assigning each basic edge the integer weight it carries in the original graph,
+    and then interpreting the algebraic operators in a way that reflects shortest-path reasoning.
+</p>
+
+<p>
+    The distance interpretation implemented here takes the following intuitive form:
+<ul>
+    <li><b>Union (+)</b> is interpreted as <i>minimum</i>, because choosing between alternative paths
+        means selecting the shorter one.
+    </li>
+    <li><b>Concatenation (·)</b> is interpreted as <i>addition</i>, because following edges in sequence
+        adds their weights.
+    </li>
+    <li><b>Kleene star (*)</b> is interpreted according to whether repeating a cycle decreases path length;
+        if the cycle has negative total weight, the shortest achievable value is <i>−∞</i>, otherwise the
+        shortest cost obtainable by repetition is <i>0</i>.
+    </li>
+</ul>
+</p>
+
+<p>
+    When you generate the “Distance Interpretation DAG,” the tool evaluates the entire path-expression DAG
+    <i>bottom-up</i>. Each node in the DAG displays the value obtained by interpreting the subexpression rooted
+    at that node under the distance algebra. By the time the root node is evaluated, its value represents the
+    length of the shortest weighted path between the chosen source and destination nodes.
+</p>
+
+<p>
+    In essence, you are watching the algebraic path expression being executed as a shortest-path algorithm.
+    This provides an intuitive bridge between traditional numeric shortest-path methods and the algebraic,
+    compositional view developed in Algebraic Program Analysis.
+</p>
+
+
+<button onclick="visualizeKleeneDAGTopDownDistanceInterpretation()">Generate Distance Interpretation DAG</button>
+<div id="distance-interpretation-dag-container"
+     style="width:700px; height:500px; border:1px solid #ccc;"></div>
+
+
+<h1>Additional Resources</h1>
 <a href="https://ucl-pplv.github.io/CAV21/poster_P_k2/">
     Kincaid, Z., Reps, T., and Cyphert, J. (2021). Algebraic program analysis.
     In Silva, A. and Leino, K. R. M., editors, Computer Aided Verification, pages 46–83, Cham.
@@ -146,6 +334,11 @@
 </footer>
 
 <script>
+
+    /*
+    FUNCTIONS FOR USER-DEFINED INTEGER WEIGHTED GRAPH
+    */
+
     // init list for graph edges
     let edges = [];
 
@@ -185,7 +378,6 @@
         renderEdgeList();
         drawGraph();
     }
-
 
     // add a single edge
     function addSingleEdge(input) {
@@ -309,7 +501,6 @@
             return opp ? 40 : 0;
         }
 
-
     function edgePath(d) {
         if (d.source.id === d.target.id) {
             const x = d.source.x;
@@ -396,8 +587,6 @@
         });
     }
 
-
-
     // let user drag nodes to rearrange them
     function drag(simulation) {
         return d3.drag()
@@ -414,30 +603,32 @@
             });
     }
 
-    // kleene's algorithm
-    function kleeneUnion(u, v) {
+
+
+    /*
+    NAIVE IMPLEMENTATION OF KLEENE'S ALGORITHM USING STRING REPRESENTATION AND MINOR SIMPLIFICATIONS
+    */
+
+    function kleeneUnionNaive(u, v) {
         if (u === '∅') return v;
         if (v === '∅') return u;
         if (u === v) return u;
         return `(${u} + ${v})`;
     }
 
-    function kleeneConcatenation(u, v) {
+    function kleeneConcatenationNaive(u, v) {
         if (u === '∅' || v === '∅') return '∅';
         if (u === '{ϵ}') return v;
         if (v === '{ϵ}') return u;
         return `(${u})(${v})`;
     }
 
-    function kleeneClosure(u) {
+    function kleeneClosureNaive(u) {
         if (u === '{ϵ}' || u === '∅') return '{ϵ}';
         return `(${u})*`;
     }
 
-    // ========================================================
-    // Main Kleene's path expressions function
-    // ========================================================
-    function kleenePathExpressions(nodes, edges, start) {
+    function kleenePathExpressionsNaive(nodes, edges, start) {
         // make sure start is in our list of nodes
         if (!nodes.includes(start)) {
             alert(`Invalid start node ${start}! Must be in ${nodes}`);
@@ -486,10 +677,10 @@
                     const vi_vi = pe[i][i];
                     const vi_vk = pe[i][k];
 
-                    const star_ii = kleeneClosure(vi_vi);
-                    const concat_ji_iistar = kleeneConcatenation(vj_vi, star_ii);
-                    const concat_jiiistar_ik = kleeneConcatenation(concat_ji_iistar, vi_vk);
-                    pe[j][k] = kleeneUnion(vj_vk, concat_jiiistar_ik);
+                    const star_ii = kleeneClosureNaive(vi_vi);
+                    const concat_ji_iistar = kleeneConcatenationNaive(vj_vi, star_ii);
+                    const concat_jiiistar_ik = kleeneConcatenationNaive(concat_ji_iistar, vi_vk);
+                    pe[j][k] = kleeneUnionNaive(vj_vk, concat_jiiistar_ik);
                 }
             }
         }
@@ -500,10 +691,15 @@
         return startToPE;
     }
 
+    // let user get path expression with enter key
+    document.getElementById("range-dest-naive").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") getPathPrefixNaive();
+    });
+
     // runner function for kleene's algorithm
-    function getPathPrefix() {
-        const src = document.getElementById("range-source").value.trim();
-        const dst = document.getElementById("range-dest").value.trim();
+    function getPathPrefixNaive() {
+        const src = document.getElementById("range-source-naive").value.trim();
+        const dst = document.getElementById("range-dest-naive").value.trim();
 
         if (!src || !dst) {
             alert("Please enter both Source and Destination nodes.");
@@ -519,15 +715,534 @@
         }
 
         // run kleene's algo
-        const pe = kleenePathExpressions(allNodes, edges, src);
+        const pe = kleenePathExpressionsNaive(allNodes, edges, src);
         if (!pe) return;
 
         // print path expression from source -> dest
         const result = pe[dst];
-        document.getElementById("sorted-nodes-output").textContent =
+        document.getElementById("pe-output-naive").textContent =
             `Path expression from ${src} → ${dst}: ${result}`;
     }
 
+
+
+    /*
+    DAG IMPLEMENTATION OF KLEENE'S ALGORITHM USING STRING REPRESENTATION AND ADDITIONAL SIMPLIFICATIONS
+    */
+
+    const INTERN_TABLE = new Map();
+
+    function intern(node){
+        const key = JSON.stringify(node.key());
+        if(INTERN_TABLE.has(key)) return INTERN_TABLE.get(key);
+        INTERN_TABLE.set(key, node);
+        return node;
+    }
+
+    // base class for all kleene objects
+    class KleeneObject {
+        key() {
+            throw "Not implemented";
+        }
+        toString() {
+            return this.to_string();
+        }
+        to_string() {
+            throw "Not implemented";
+        }
+    }
+
+    // classes for DAG leaf nodes
+    class EmptySet extends KleeneObject {
+        key() {
+            return ["empty"];
+        }
+        to_string() {
+            return "∅";
+        }
+    }
+    class Epsilon extends KleeneObject {
+        key() {
+            return ["epsilon"];
+        }
+        to_string() {
+            return "{ϵ}";
+        }
+    }
+    class EdgeK extends KleeneObject {
+        constructor(u, v) {
+            super();
+            this.u = u;
+            this.v = v;
+        }
+        key() {
+            return ["edge", this.u, this.v];
+        }
+        to_string() {
+            return `<${this.u},${this.v}>`;
+        }
+    }
+
+    // init the first two nodes that will be used in the initialization of the matrix
+    const EMPTY = intern(new EmptySet());
+    const EPSILON = intern(new Epsilon());
+
+    // Kleene Functions
+    class KleeneUnionDAG extends KleeneObject {
+        constructor(left, right) {
+            super();
+            this.left = left;
+            this.right = right;
+        }
+        key() {
+            return ["union", this.left.key(), this.right.key()];
+        }
+        to_string() {
+            return `(${this.left.to_string()} + ${this.right.to_string()})`;
+        }
+    }
+    class KleeneConcatDAG extends KleeneObject {
+        constructor(left, right) {
+            super();
+            this.left = left;
+            this.right = right;
+        }
+        key() {
+            return ["concat", this.left.key(), this.right.key()];
+        }
+        to_string() {
+            return `(${this.left.to_string()}${this.right.to_string()})`;
+        }
+    }
+    class KleeneStarDAG extends KleeneObject {
+        constructor(pe) {
+            super();
+            this.pe = pe;
+        }
+        key() {
+            return ["star", this.pe.key()];
+        }
+        to_string() {
+            return `(${this.pe.to_string()})*`;
+        }
+    }
+
+    function kleeneUnionDag(u, v) {
+        // simplification: ∅ + p = p
+        if (u === EMPTY) return v;
+        if (v === EMPTY) return u;
+        // simplification: p + p = p
+        if (u === v) return u;
+        // simplification: p + p* = p*
+        if (v instanceof KleeneStarDAG && v.pe === u) return v;
+        // simplification: p* + p = p*
+        if (u instanceof KleeneStarDAG && u.pe === v) return u;
+        // NOTE: (pq) + p =/= pq. this does not simplify!
+        // simplification: (pq*) + p = (q*p) + p = (pq*)
+        if (u instanceof KleeneConcatDAG && ((u.right instanceof KleeneStarDAG && u.left === v) || (u.left instanceof KleeneStarDAG && u.right === v))) return u;
+        // simplification: p + (pq*) = p + (q*p) = (pq*)
+        if (v instanceof KleeneConcatDAG && ((v.right instanceof KleeneStarDAG && v.left === u) || (v.left instanceof KleeneStarDAG && v.right === u))) return v;
+        // otherwise, return naive u+v
+        return intern(new KleeneUnionDAG(u, v));
+    }
+
+    function kleeneConcatenationDag(u, v) {
+        // simplification: # ∅p = p∅ = ∅
+        if (u === EMPTY || v === EMPTY) return EMPTY;
+        // simplification: εx = xε =  x
+        if (u === EPSILON) return v;
+        if (v === EPSILON) return u;
+        // simplification: pp* = p*
+        if (v instanceof KleeneStarDAG && v.pe === u) return v;
+        // simplification: p*p = p*
+        if (u instanceof KleeneStarDAG && u.pe === v) return u;
+        // simplification: p*p* = p*
+        // NOTE: we cannot simplify pp, but we can simplify pp*, p*p, and p*p* all to just p*
+        if (u instanceof KleeneStarDAG && v instanceof KleeneStarDAG && u === v) return u;
+        // simplification: (qp*)p* = (p*q)p* = qp*
+        if ((u instanceof KleeneConcatDAG && v instanceof KleeneStarDAG) && ((u.right instanceof KleeneStarDAG && u.right === v) || (u.left instanceof KleeneStarDAG && u.left === v))) return u;
+        // simplification: p*(qp*) = p*(p*q) = qp*
+        if ((v instanceof KleeneConcatDAG && u instanceof KleeneStarDAG) && ((v.left instanceof KleeneStarDAG && v.left === u) || (v.right instanceof KleeneStarDAG && v.right === u))) return v;
+        // otherwise, return naive concatenation of uv
+        return intern(new KleeneConcatDAG(u, v));
+    }
+
+    function kleeneClosureDag(u) {
+        // simplification: ∅* = ε* = ε
+        if (u === EMPTY || u === EPSILON) return EPSILON;
+        // simplification: p** = p*
+        if (u instanceof KleeneStarDAG) return u;
+        // otherwise, return naive u-star
+        return intern(new KleeneStarDAG(u));
+    }
+
+    function kleenePathExpressionsDAG(nodes, edges, start) {
+        // make sure start is in our list of nodes
+        if (!nodes.includes(start)) {
+            alert(`Invalid ${start}! Must be in nodes`);
+            return null;
+        }
+        // make sure neither of our helper values are in the list of node names
+        if (nodes.includes("∅") || nodes.includes("{ϵ}")) {
+            alert('Invalid node names ∅ or {ϵ}');
+            return null;
+        }
+
+        // start node must be 0th index in list of nodes
+        nodes.sort();
+        nodes = nodes.filter(n => n !== start);
+        nodes.unshift(start);
+        const node_name_to_index = {};
+        nodes.forEach((v, i) => node_name_to_index[v] = i);
+        const n = nodes.length;
+
+        // # init matrix keeping track of all path expressions between nodes
+        // starting vals are all the empty set represented as ∅
+        // this is equivalent to: 0L ≜ ∅ is the empty language
+        const path_expressions = Array.from({
+            length: n
+        }, () => Array.from({
+            length: n
+        }, () => EMPTY));
+
+        //vals along the diagonal represent paths from a node to itself
+        // these are represented with {ϵ}, the singleton language containing the empty word
+        // this is equivalent to: 1L ≜ {ϵ} is the singleton language containing the empty word
+        for (let i = 0; i < n; i++) path_expressions[i][i] = EPSILON;
+
+        // Initialize direct edges
+        edges.forEach(edge => {
+            const u_idx = node_name_to_index[edge.sourceName],
+                v_idx = node_name_to_index[edge.targetName];
+            path_expressions[u_idx][v_idx] = intern(new EdgeK(edge.sourceName, edge.targetName));
+        });
+
+        // kleene's path expression algo
+        for (let i = n - 1; i >= 0; i--) {
+            for (let j = i; j >= 0; j--) {
+                for (let k = n - 1; k >= 0; k--) {
+                    // compute:
+                        // pe(vj,vk) ←pe(vj,vk) + pe(vj,vi)·pe(vi,vi)∗ ·pe(vi,vk)
+                    // init vars
+                    const vj_vk = path_expressions[j][k];
+                    const vj_vi = path_expressions[j][i];
+                    const vi_vi = path_expressions[i][i];
+                    const vi_vk = path_expressions[i][k];
+                    // apply functions
+                    const star_ii = kleeneClosureDag(vi_vi);
+                    const concat_ji_iistar = kleeneConcatenationDag(vj_vi, star_ii);
+                    const concat_jiiistar_ik = kleeneConcatenationDag(concat_ji_iistar, vi_vk);
+                    const union_jk_jiiiistarik = kleeneUnionDag(vj_vk, concat_jiiistar_ik);
+                    // update val
+                    path_expressions[j][k] = union_jk_jiiiistarik;
+                }
+            }
+        }
+
+        // get path expressions from start to all possible nodes
+        const start_index = node_name_to_index[start];
+        const start_to_pe = {};
+        nodes.forEach(node => {
+            const idx = node_name_to_index[node];
+            start_to_pe[node] = path_expressions[start_index][idx];
+        });
+        return start_to_pe;
+    }
+
+    // let user get path expression with enter key
+    document.getElementById("range-dest-dag").addEventListener("keydown", function(e) {
+        if (e.key === "Enter") getPathPrefixDAG();
+    });
+
+    // init global vars to store output from getPathPrefixDAG() to later use in getPathPrefixDAGSimplified()
+    let PATHPREFIXDAG;
+    let SRCDAG;
+    let DSTDAG
+
+    // runner function for kleene's algorithm
+    function getPathPrefixDAG() {
+        const src = document.getElementById("range-source-dag").value.trim();
+        const dst = document.getElementById("range-dest-dag").value.trim();
+
+        if (!src || !dst) {
+            alert("Please enter both Source and Destination nodes.");
+            return;
+        }
+
+        // get nodes from user-defined input graph
+        const allNodes = Array.from(new Set(edges.flatMap(e => [e.sourceName, e.targetName]))).sort();
+
+        if (!allNodes.includes(src) || !allNodes.includes(dst)) {
+            alert("Both Source and Destination must be nodes in the graph.");
+            return;
+        }
+
+        // run kleene's algo
+        const pe = kleenePathExpressionsDAG(allNodes, edges, src);
+        if (!pe) return;
+
+        // get path prefix from src to dest
+        const result = pe[dst];
+
+        // save path prefix for later use in getPathPrefixDAGSimplified()
+        PATHPREFIXDAG = result;
+        SRCDAG = src;
+        DSTDAG = dst;
+
+        // print path expression from source -> dest
+        document.getElementById("pe-output-dag").textContent =
+            `Path expression from ${src} → ${dst}: ${result}`;
+    }
+
+
+
+    /*
+    DAG IMPLEMENTATION OF KLEENE'S ALGORITHM USING STRING REPRESENTATION AND ONE ADDITIONAL SIMPLIFICATION
+    */
+
+    // init global var to store simplified path prefix which is later used in visualization
+    let PATHPREFIXDAGSIMPLIFIED;
+
+    // function used to apply the single simplification rule for: ({ϵ} + p)* = (p + {ϵ})* = p*
+    function simplifyEpsilonStar(obj = PATHPREFIXDAG) {
+
+        // base cases
+        if (obj === EPSILON || obj === EMPTY) {
+            return obj;
+        }
+
+        // KleeneUnion
+        if (obj instanceof KleeneUnionDAG) {
+            let left = simplifyEpsilonStar(obj.left);
+            let right = simplifyEpsilonStar(obj.right);
+            return intern(new KleeneUnionDAG(left, right));
+        }
+
+        // KleeneConcat
+        if (obj instanceof KleeneConcatDAG) {
+            let left = simplifyEpsilonStar(obj.left);
+            let right = simplifyEpsilonStar(obj.right);
+            return intern(new KleeneConcatDAG(left, right));
+        }
+
+        // KleeneStar
+        if (obj instanceof KleeneStarDAG) {
+            let pe = simplifyEpsilonStar(obj.pe);
+
+            // ({ϵ} + p)* = (p + {ϵ})* = p*
+            if (pe instanceof KleeneUnionDAG) {
+                if (pe.left === EPSILON) {
+                    return intern(new KleeneStarDAG(pe.right));
+                }
+                if (pe.right === EPSILON) {
+                    return intern(new KleeneStarDAG(pe.left));
+                }
+            }
+
+            return intern(new KleeneStarDAG(pe));
+        }
+
+        return obj;
+    }
+
+    // simplify previously computed path expression
+    function getPathPrefixDAGSimplified() {
+        // get simplified path expression
+        PATHPREFIXDAGSIMPLIFIED = simplifyEpsilonStar();
+
+        // print path expression from source -> dest
+        document.getElementById("pe-output-dag-simplified").textContent =
+            `Path expression from ${SRCDAG} → ${DSTDAG}: ${PATHPREFIXDAGSIMPLIFIED}`;
+    }
+
+
+
+    /*
+    DISTANCE INTERPRETATION FOR SHORTEST PATH
+    */
+
+    function buildGraphFromKleene(root) {
+        const dagGraph = {nodes: {},edges: []};
+
+        const mapping = new Map();
+        let counter = 0;
+
+        // init helper function to traverse root node and add all edges
+        // also update mapping
+        function visit(node) {
+            if (!node) return null;
+
+            if (mapping.has(node)) return mapping.get(node);
+
+            // assign a unique id
+            const nid = "N" + counter;
+            counter += 1;
+            mapping.set(node, nid);
+
+            // add node to graph
+            dagGraph.nodes[nid] = { obj: node };
+
+            // recurse on children
+            if (node instanceof KleeneUnionDAG || node instanceof KleeneConcatDAG) {
+                const leftId = visit(node.left);
+                const rightId = visit(node.right);
+                if (leftId) dagGraph.edges.push({ source: nid, target: leftId });
+                if (rightId) dagGraph.edges.push({ source: nid, target: rightId });
+            } else if (node instanceof KleeneStarDAG) {
+                const peId = visit(node.pe);
+                if (peId) dagGraph.edges.push({ source: nid, target: peId });
+            }
+
+            return nid;
+        }
+
+        visit(root);
+
+        return { dagGraph, mapping };
+    }
+
+    function buildWeightDict() {
+        const weight_dict = {};
+        for (const e of edges) {
+            const key = `${e.sourceName}:${e.targetName}`;
+            weight_dict[key] = e.weight;
+        }
+        return weight_dict;
+    }
+
+    function getDistanceInterpretation(node, weight_dict, memo = new Map()) {
+        if (!node) return Infinity;
+        if (memo.has(node)) return memo.get(node);
+
+        let value;
+
+        // assign leaf nodes
+        if (node instanceof EdgeK) {
+            const key = `${node.u}:${node.v}`;
+            const w = weight_dict[key];
+            if (w === undefined) {
+                console.warn(`Missing weight for edge ${key}, using Infinity`);
+                value = Infinity;
+            } else {
+                value = w;
+            }
+        } else if (node instanceof EmptySet) {
+            // ∅ interpreted as +∞
+            value = Infinity;
+        } else if (node instanceof Epsilon) {
+            // 1 interpreted as 0
+            value = 0;
+        } else if (node instanceof KleeneUnionDAG) {
+            const left = getDistanceInterpretation(node.left, weight_dict, memo);
+            const right = getDistanceInterpretation(node.right, weight_dict, memo);
+            value = Math.min(left, right);
+        } else if (node instanceof KleeneConcatDAG) {
+            const left = getDistanceInterpretation(node.left, weight_dict, memo);
+            const right = getDistanceInterpretation(node.right, weight_dict, memo);
+            value = left + right;
+        } else if (node instanceof KleeneStarDAG) {
+            const pe = getDistanceInterpretation(node.pe, weight_dict, memo);
+            value = (pe < 0) ? -Infinity : 0;
+        } else {
+            throw new Error("Unknown Kleene DAG node type: " + node);
+        }
+
+        // update memo and return val
+        memo.set(node, value);
+        return value;
+    }
+
+    // runner function to visualize the Kleene DAG with distance interpretation
+    function visualizeKleeneDAGTopDownDistanceInterpretation() {
+        // build DAG
+        const { dagGraph, mapping } = buildGraphFromKleene(PATHPREFIXDAGSIMPLIFIED);
+
+        // get weights dict
+        const weight_dict = buildWeightDict();
+
+        // compute distance interpretation
+        const memo = new Map();
+        getDistanceInterpretation(PATHPREFIXDAGSIMPLIFIED, weight_dict, memo);
+
+        // prepare Cytoscape graph visualization elements
+        // note: using cytoscape in this implementation instead of d3 for more versatility and visibility with large graphs
+        const elements = [];
+
+        // label nodes
+        for (const nid of Object.keys(dagGraph.nodes)) {
+            const obj = dagGraph.nodes[nid].obj;
+            const dist = memo.get(obj);
+
+            let label = "?";
+            if (obj instanceof KleeneUnionDAG) label = "+";
+            else if (obj instanceof KleeneConcatDAG) label = "·";
+            else if (obj instanceof KleeneStarDAG) label = "∗";
+            else if (obj instanceof EdgeK) {
+                const key = `${obj.u}:${obj.v}`;
+                label = `<${obj.u},${obj.v}> (${weight_dict[key]})`;
+            } else if (obj instanceof Epsilon) label = "ε";
+            else if (obj instanceof EmptySet) label = "∅";
+
+            if (dist !== undefined) label += `\nD=${dist}`;
+
+            elements.push({ data: { id: nid, label: label } });
+        }
+
+        // set edges
+        for (const e of dagGraph.edges) {
+            elements.push({
+                data: {
+                    id: `${e.source}_${e.target}`,
+                    source: e.source,
+                    target: e.target
+                }
+            });
+        }
+
+        // render Cytoscape graph
+        const container = document.getElementById("distance-interpretation-dag-container");
+        container.innerHTML = "";
+
+        cytoscape({
+            container: container,
+            elements: elements,
+            layout: {
+                name: "dagre",
+                rankDir: "TB",
+                nodeSep: 50,
+                edgeSep: 20,
+                rankSep: 80
+            },
+            style: [
+                {
+                    selector: "node",
+                    style: {
+                        "shape": "ellipse",
+                        "background-color": "#F08822",
+                        "border-width": 2,
+                        "border-color": "#333",
+                        "label": "data(label)",
+                        "text-valign": "center",
+                        "text-halign": "center",
+                        "text-wrap": "wrap",
+                        "text-max-width": 150,
+                        "font-size": 18,
+                        "padding": "35px",
+                    }
+                },
+                {
+                    selector: "edge",
+                    style: {
+                        "curve-style": "bezier",
+                        "target-arrow-shape": "triangle",
+                        "target-arrow-color": "#333",
+                        "width": 2,
+                        "line-color": "#555"
+                    }
+                }
+            ]
+        });
+    }
 
 </script>
 </body>
